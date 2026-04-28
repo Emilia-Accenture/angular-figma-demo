@@ -1,0 +1,321 @@
+# 📦 Component Patterns Catalog
+#
+# Catalogo di pattern UI riutilizzabili per il progetto angular-figma-demo.
+# Ogni pattern fornisce: html_example, scss_example, ts_imports, descrizione.
+# I generator (component-html, component-css, component-ts) consultano
+# questo file PRIMA di scrivere markup ricorrente (regola D7).
+#
+# Convenzioni:
+# - HTML semantico (no <div> fake).
+# - Reactive Forms per ogni input utente.
+# - Naming BEM-light (.block__element--modifier).
+# - SCSS usa CSS custom properties (var(--token)).
+# - Angular 17+ syntax (@if/@for, signals dove utile).
+
+version: 1
+
+patterns:
+
+  # =============================================
+  # Tabelle dati
+  # =============================================
+  data-table:
+    description: |
+      Tabella di dati con header, righe e azioni opzionali.
+      Usa HTML semantico e supporta empty / loading / error state.
+    when_to_use:
+      - Visualizzare collezioni di entità (lista task, lista contatti, lista articoli...).
+      - Quando il design Figma mostra colonne strutturate.
+    when_not_to_use:
+      - Per layout a griglia di card (usa card-grid).
+      - Per liste piatte senza colonne (usa list-vertical).
+    ts_imports:
+      - "import { CommonModule } from '@angular/common';"
+    html_example: |
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Colonna 1</th>
+            <th scope="col">Colonna 2</th>
+            <th scope="col" class="table__actions">Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr (click)="onRowClick(row.id)">
+              <td>{{ row.field1 }}</td>
+              <td>{{ row.field2 }}</td>
+              <td class="table__actions">
+                <button type="button" class="btn btn--icon" (click)="onAction($event, row.id)" aria-label="Elimina">✕</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    scss_example: |
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        thead th {
+          text-align: left;
+          padding: var(--spacing-sm) var(--spacing-md);
+          border-bottom: 2px solid var(--color-border);
+        }
+        tbody tr {
+          cursor: pointer;
+          border-bottom: 1px solid var(--color-border);
+          &:hover { background: var(--color-bg-alt); }
+          td { padding: var(--spacing-sm) var(--spacing-md); }
+        }
+        &__actions { width: 60px; text-align: right; }
+      }
+
+  # =============================================
+  # Form
+  # =============================================
+  form-reactive:
+    description: |
+      Form Angular Reactive con FormGroup, FormControl, validazione errori.
+      D2: niente ngModel.
+    when_to_use:
+      - Qualsiasi input utente (creazione, modifica, ricerca).
+    ts_imports:
+      - "import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';"
+    html_example: |
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+        <label class="field">
+          <span class="field__label">Titolo</span>
+          <input formControlName="title" type="text" class="field__input" />
+          @if (form.controls.title.invalid && form.controls.title.touched) {
+            <span class="field__error">Campo obbligatorio</span>
+          }
+        </label>
+        <div class="form__actions">
+          <button type="button" class="btn" (click)="onCancel()">Annulla</button>
+          <button type="submit" class="btn btn--primary" [disabled]="form.invalid">Salva</button>
+        </div>
+      </form>
+    scss_example: |
+      .form {
+        display: flex; flex-direction: column; gap: var(--spacing-md);
+        &__actions { display: flex; gap: var(--spacing-sm); justify-content: flex-end; }
+      }
+      .field {
+        display: flex; flex-direction: column; gap: var(--spacing-xs);
+        &__input {
+          padding: var(--spacing-sm) var(--spacing-md);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-sm);
+          font: inherit;
+        }
+        &__error { color: var(--color-error); font-size: var(--font-size-small); }
+      }
+
+  # =============================================
+  # Search bar
+  # =============================================
+  search-bar:
+    description: |
+      Input di ricerca con debounce, integrato nel filterForm del componente.
+    ts_imports:
+      - "import { ReactiveFormsModule } from '@angular/forms';"
+      - "import { debounceTime } from 'rxjs/operators';"
+    html_example: |
+      <label class="search-bar">
+        <span class="visually-hidden">Cerca</span>
+        <input formControlName="search" type="search" placeholder="Cerca..." />
+      </label>
+    scss_example: |
+      .search-bar {
+        flex: 1 1 240px;
+        input {
+          width: 100%;
+          padding: var(--spacing-sm) var(--spacing-md);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-sm);
+        }
+      }
+
+  # =============================================
+  # Bottoni
+  # =============================================
+  button-primary:
+    description: Bottone azione primaria (CTA).
+    html_example: |
+      <button type="button" class="btn btn--primary" (click)="onClick()">Etichetta</button>
+    scss_example: |
+      .btn {
+        display: inline-flex; align-items: center; gap: var(--spacing-xs);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
+        cursor: pointer; font: inherit;
+        &--primary { background: var(--color-primary); color: #fff; }
+        &--icon { padding: var(--spacing-xs); background: transparent; }
+      }
+
+  button-icon:
+    description: Bottone icona-only con accessibilità (aria-label).
+    html_example: |
+      <button type="button" class="btn btn--icon" (click)="onClick()" aria-label="Etichetta accessibile">
+        <span aria-hidden="true">★</span>
+      </button>
+
+  # =============================================
+  # Dialog / Overlay
+  # =============================================
+  dialog-overlay:
+    description: |
+      Modal/dialog con backdrop. Niente librerie esterne — overlay manuale con focus-trap basico.
+    ts_imports:
+      - "import { CommonModule } from '@angular/common';"
+    html_example: |
+      @if (open()) {
+        <div class="dialog-overlay" (click)="onBackdropClick()" role="dialog" aria-modal="true">
+          <div class="dialog" (click)="$event.stopPropagation()">
+            <header class="dialog__header">
+              <h2>{{ title }}</h2>
+              <button type="button" class="btn btn--icon" (click)="close()" aria-label="Chiudi">✕</button>
+            </header>
+            <div class="dialog__body">
+              <ng-content></ng-content>
+            </div>
+          </div>
+        </div>
+      }
+    scss_example: |
+      .dialog-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: grid; place-items: center;
+        z-index: 1000;
+      }
+      .dialog {
+        background: var(--color-bg);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        max-width: 480px;
+        width: calc(100% - var(--spacing-2xl));
+        &__header {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: var(--spacing-md);
+          border-bottom: 1px solid var(--color-border);
+        }
+        &__body { padding: var(--spacing-md); }
+      }
+
+  # =============================================
+  # Stati asincroni
+  # =============================================
+  async-state:
+    description: |
+      Pattern per gestire stati loading / success / empty / error in un'unica view.
+    html_example: |
+      @if (state() === 'loading') {
+        <div class="skeleton" role="status" aria-live="polite">Caricamento...</div>
+      }
+      @if (state() === 'error') {
+        <div class="alert alert--error" role="alert">{{ errorMessage() }}</div>
+      }
+      @if (state() === 'success' && items().length === 0) {
+        <div class="empty-state">
+          <p>Nessun risultato.</p>
+        </div>
+      }
+      @if (state() === 'success' && items().length > 0) {
+        <ng-container>
+          <!-- contenuto -->
+        </ng-container>
+      }
+    scss_example: |
+      .skeleton {
+        padding: var(--spacing-lg);
+        background: linear-gradient(90deg, var(--color-bg-alt), var(--color-bg)) ;
+      }
+      .alert {
+        padding: var(--spacing-md);
+        border-radius: var(--radius-sm);
+        &--error {
+          background: #FEE2E2;
+          color: #991B1B;
+          border: 1px solid var(--color-error);
+        }
+      }
+      .empty-state {
+        text-align: center;
+        padding: var(--spacing-2xl) var(--spacing-md);
+        color: var(--color-text-muted);
+      }
+
+  # =============================================
+  # Card grid
+  # =============================================
+  card-grid:
+    description: |
+      Layout a griglia di card per mostrare collezioni con preview visiva.
+    html_example: |
+      <ul class="card-grid">
+        @for (item of items(); track item.id) {
+          <li class="card" (click)="onSelect(item.id)">
+            <h3 class="card__title">{{ item.title }}</h3>
+            <p class="card__description">{{ item.description }}</p>
+          </li>
+        }
+      </ul>
+    scss_example: |
+      .card-grid {
+        display: grid;
+        gap: var(--spacing-md);
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        list-style: none; padding: 0; margin: 0;
+      }
+      .card {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        cursor: pointer;
+        &:hover { box-shadow: var(--shadow-md); }
+        &__title { margin: 0 0 var(--spacing-xs) 0; font-size: var(--font-size-h2); }
+        &__description { margin: 0; color: var(--color-text-muted); }
+      }
+
+  # =============================================
+  # Badge / Chip
+  # =============================================
+  badge:
+    description: Badge per stato o categoria.
+    html_example: |
+      <span class="badge" [class]="'badge--' + status">{{ statusLabel }}</span>
+    scss_example: |
+      .badge {
+        display: inline-flex;
+        padding: 2px var(--spacing-sm);
+        border-radius: var(--radius-sm);
+        font-size: var(--font-size-small);
+        font-weight: 500;
+        &--todo  { background: #E0E7FF; color: #3730A3; }
+        &--doing { background: #FEF3C7; color: #92400E; }
+        &--done  { background: #D1FAE5; color: #065F46; }
+        &--neutral { background: var(--color-bg-alt); color: var(--color-text); }
+      }
+
+  # =============================================
+  # Lista verticale semplice
+  # =============================================
+  list-vertical:
+    description: Lista verticale semplice (ul/li) per elenchi senza colonne.
+    html_example: |
+      <ul class="list">
+        @for (item of items(); track item.id) {
+          <li class="list__item">{{ item.label }}</li>
+        }
+      </ul>
+    scss_example: |
+      .list {
+        list-style: none; padding: 0; margin: 0;
+        &__item {
+          padding: var(--spacing-sm) var(--spacing-md);
+          border-bottom: 1px solid var(--color-border);
+        }
+      }

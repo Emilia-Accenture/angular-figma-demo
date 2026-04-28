@@ -1,0 +1,33 @@
+<button
+  type="button"
+  class="theme-toggle"
+  role="switch"
+  [attr.aria-checked]="isDark()"
+  [attr.aria-label]="isDark() ? 'Disattiva tema scuro' : 'Attiva tema scuro'"
+  [title]="isDark() ? 'Tema scuro attivo — clicca per chiaro' : 'Tema chiaro attivo — clicca per scuro'"
+  (click)="toggle()"
+>
+  <span class="theme-toggle__track" aria-hidden="true">
+    <span class="theme-toggle__thumb">
+      @if (isDark()) {
+        <svg class="theme-toggle__icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" focusable="false">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="currentColor"/>
+        </svg>
+      } @else {
+        <svg class="theme-toggle__icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" focusable="false">
+          <circle cx="12" cy="12" r="4" fill="currentColor"/>
+          <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M12 3v2"/>
+            <path d="M12 19v2"/>
+            <path d="M3 12h2"/>
+            <path d="M19 12h2"/>
+            <path d="M5.6 5.6l1.4 1.4"/>
+            <path d="M17 17l1.4 1.4"/>
+            <path d="M5.6 18.4l1.4-1.4"/>
+            <path d="M17 7l1.4-1.4"/>
+          </g>
+        </svg>
+      }
+    </span>
+  </span>
+</button>

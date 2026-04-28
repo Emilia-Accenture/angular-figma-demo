@@ -1,0 +1,91 @@
+// ============================================
+// Design Tokens — angular-figma-demo
+// --------------------------------------------
+// Single source of truth per i token visuali.
+// I valori vengono normalmente popolati dal
+// figma-design-system extractor (Phase 2 della
+// pipeline) e usati nei componenti tramite
+// var(--token-name).
+// Vedi regola D6 in .claude/CLAUDE.md.
+//
+// Tema chiaro = default su :root.
+// Tema scuro  = override su [data-theme="dark"].
+// L'attributo viene impostato su <html> da un
+// piccolo bootstrap in index.html e da
+// theme-toggle.component.
+// ============================================
+
+:root {
+  color-scheme: light;
+
+  // Colors (light theme — default)
+  --color-primary:       #3B82F6;
+  --color-primary-hover: #2563EB;
+  --color-success:       #10B981;
+  --color-warning:       #F59E0B;
+  --color-error:         #EF4444;
+  --color-info:          #0EA5E9;
+
+  --color-text:          #111827;
+  --color-text-muted:    #6B7280;
+
+  --color-bg:            #FFFFFF;
+  --color-bg-alt:        #F9FAFB;
+  --color-border:        #E5E7EB;
+
+
+  // Typography
+  --font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+                       'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-h1:     28px;
+  --font-size-h2:     22px;
+  --font-size-h3:     18px;
+  --font-size-body:   14px;
+  --font-size-small:  12px;
+
+  // Spacing (multipli di 4)
+  --spacing-xs:  4px;
+  --spacing-sm:  8px;
+  --spacing-md:  16px;
+  --spacing-lg:  24px;
+  --spacing-xl:  32px;
+  --spacing-2xl: 48px;
+
+  // Radius
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  // Shadow
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  // Colors (dark theme override)
+  --color-primary:       #3B82F6;
+  --color-primary-hover: #60A5FA;
+  --color-success:       #34D399;
+  --color-warning:       #FBBF24;
+  --color-error:         #F87171;
+  --color-info:          #38BDF8;
+
+  --color-text:          #F1F5F9;
+  --color-text-muted:    #94A3B8;
+
+  --color-bg:            #0F172A;
+  --color-bg-alt:        #1E293B;
+  --color-border:        #334155;
+
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+
+}
