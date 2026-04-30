@@ -48,7 +48,6 @@ const PROTECTED_FEATURES = new Set(['_placeholder']);
 // rimosse automaticamente quando la feature viene eliminata.
 // ============================================================
 
-
 function send(res, status, body) {
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
@@ -95,6 +94,26 @@ function writeStateFile(state) {
     phaseTimes: state.phaseTimes ?? {},
     totalTimeMs: state.totalTimeMs ?? null,
   };
+  // Se il file è già nello stato richiesto (a meno di updatedAt), evitiamo
+  // di riscriverlo: tipico caso DELETE su stato già idle, che altrimenti
+  // sporcherebbe il git diff col solo timestamp.
+  if (fs.existsSync(STATE_FILE)) {
+    try {
+      const current = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+      const sameState =
+        current.feature === payload.feature &&
+        current.currentPhase === payload.currentPhase &&
+        current.status === payload.status &&
+        current.startedAt === payload.startedAt &&
+        current.totalTimeMs === payload.totalTimeMs &&
+        JSON.stringify(current.phaseTimes ?? {}) === JSON.stringify(payload.phaseTimes ?? {});
+      if (sameState) {
+        return current;
+      }
+    } catch {
+      /* file corrotto: procedi con la riscrittura */
+    }
+  }
   fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
   fs.writeFileSync(STATE_FILE, JSON.stringify(payload, null, 2) + '\n', 'utf8');
   return payload;
@@ -106,13 +125,20 @@ function writeStateFile(state) {
 function stripFeatureBlocks(filePath, name) {
   if (!fs.existsSync(filePath)) return false;
   const content = fs.readFileSync(filePath, 'utf8');
+  const originalEndsWithNewline = /\r?\n$/.test(content);
   const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(
     `[ \\t]*//[ \\t]*=== BEGIN feature:${escapedName} ===[\\s\\S]*?//[ \\t]*=== END feature:${escapedName} ===[ \\t]*\\r?\\n?`,
     'g',
   );
-  const cleaned = content.replace(re, '');
+  let cleaned = content.replace(re, '');
   if (cleaned === content) return false;
+  // Collassa eventuali sequenze di 3+ newline (riga vuota residua dal padding
+  // attorno al blocco rimosso) a 2 newline = al più una riga vuota.
+  cleaned = cleaned.replace(/(\r?\n)(\r?\n){2,}/g, '$1$1');
+  // Normalizza il fine file: lo riconduciamo allo stato originale (con o
+  // senza newline finale), evitando newline extra lasciati dal blocco.
+  cleaned = cleaned.replace(/(\r?\n)+$/, originalEndsWithNewline ? '\n' : '');
   fs.writeFileSync(filePath, cleaned, 'utf8');
   return true;
 }
@@ -205,7 +231,6 @@ const server = http.createServer(async (req, res) => {
       return send(res, 400, { ok: false, error: `Body non valido: ${err.message}` });
     }
   }
-
 
   return send(res, 404, { ok: false, error: 'Endpoint non trovato.' });
 });
