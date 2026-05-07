@@ -50,7 +50,9 @@ function pipe(stream, label, color) {
 function start(label, color, args) {
   const child = spawn(npmCmd, args, {
     stdio: ['ignore', 'pipe', 'pipe'],
-    shell: false,
+    // Su Windows npm è `npm.cmd`: dal patch CVE-2024-27980 (Node 18.20.2+)
+    // spawn rifiuta gli script .cmd/.bat senza shell e tira EINVAL.
+    shell: isWindows,
   });
   procs.push(child);
 
